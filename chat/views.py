@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import Room
+from .models import Room, Message
+from django.http import HttpResponse, JsonResponse
 # Create your views here.
 
 
@@ -28,3 +29,22 @@ def check_room(req):
 
     # return redirect('home')
     return redirect(f'/{room}/?username={username}')
+
+
+def send(req):
+    message = req.POST['message']
+    username = req.POST['username']
+    room_id = req.POST['room_id']
+
+    new_message = Message.objects.create(value=message, user=username, room=room_id)
+    new_message.save()
+
+    return HttpResponse('Message sent')
+
+
+def get_messages(req, room):
+
+    room_details = Room.objects.get(name=room)
+    messages = Message.objects.filter(room=room_details.id)
+
+    return JsonResponse({'messages': list(messages.values())})
